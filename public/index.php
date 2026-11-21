@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($_POST['operation'] === 'create') {
             $taskTitle = trim((string) $_POST['titulo']);
             $taskDescription = trim((string) $_POST['descricao']);
+            if ($taskDescription === '') {$taskDescription = "Sem descrição.";}
             if (create_task($pdo, $taskTitle, $taskDescription)) {
                 $_SESSION['success'] = "A task \"{$taskTitle}\" foi criada com sucesso!";
             } else {
@@ -54,8 +55,48 @@ $pendingTasks = $totalTasks - $completedTasks;
 $completion = $totalTasks > 0
     ? (int) round(($completedTasks / $totalTasks) * 100)
     : 0;
+$showIntro = empty($_SESSION['intro_seen']) || isset($_GET['intro']);
+$_SESSION['intro_seen'] = true;
 require __DIR__ . '/../views/header.php';
 ?>
+
+<dialog class="intro" id="intro" aria-label="Taskflow">
+    <div class="intro-brand">
+        <div class="intro-mark">T</div>
+        <div class="intro-name">
+            <div class="intro-clip"><span>TASKFLOW</span></div>
+        </div>
+    </div>
+</dialog>
+
+<script>
+(() => {
+    const intro = document.getElementById('intro');
+    if (!intro) return;
+
+    // ?intro no final do endereço força a animação (útil para testar)
+    const forced = new URLSearchParams(location.search).has('intro');
+
+    // cada aba tem a sua própria memória; ela some quando a aba é fechada
+    let seen = false;
+    try { seen = sessionStorage.getItem('taskflowIntro') === '1'; } catch (e) {}
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if ((seen && !forced) || reduceMotion || typeof intro.showModal !== 'function') {
+        intro.remove();
+        return;
+    }
+
+    try { sessionStorage.setItem('taskflowIntro', '1'); } catch (e) {}
+
+    intro.showModal();
+    intro.addEventListener('animationend', (e) => {
+        if (e.target === intro && e.animationName === 'introOut') intro.close();
+    });
+    intro.addEventListener('click', () => intro.classList.add('skip'));
+    intro.addEventListener('cancel', (e) => { e.preventDefault(); intro.classList.add('skip'); });
+})();
+</script>
 
 <?php if (isset($_SESSION['success'])): ?>
     <div class="alert alert-success">
@@ -244,7 +285,7 @@ require __DIR__ . '/../views/header.php';
                 name="titulo"
                 id="titulo"
                 placeholder="Ex.: Estudar PHP"
-                maxlength="20"
+                maxlength="100"
                 required
             >
         </div>

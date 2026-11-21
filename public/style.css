@@ -726,3 +726,118 @@ form.task-check button.task-check::after { content: "✓"; }
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
+/* ---------- Animação de abertura (Taskflow) ---------- */
+.intro {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    animation: introOut 2s ease 6.2s forwards;      /* some lentamente */
+}
+.intro[open] { display: grid; place-items: center; }
+.intro::backdrop { background: transparent; }
+.intro:focus-visible { outline: none; }
+.intro.skip { animation: introOut .4s ease forwards; }
+
+.intro-brand {
+    display: flex;
+    align-items: center;
+    animation: brandPulse 1.2s ease-in-out 3.6s 2;     /* pulsa 2 vezes */
+}
+
+/* O T: aparece primeiro */
+.intro-mark {
+    position: relative;
+    z-index: 2;                                         /* fica na frente do texto */
+    display: grid;
+    flex-shrink: 0;
+    width: clamp(64px, 14vw, 92px);
+    height: clamp(64px, 14vw, 92px);
+    place-items: center;
+    border: 3px solid #fff;
+    border-radius: 24px;
+    background: #000;
+    font-size: clamp(2rem, 7vw, 3.1rem);
+    font-weight: 800;
+    box-shadow: 0 0 24px rgba(255, 255, 255, .18);
+    animation:
+        markIn 1s cubic-bezier(.2, .8, .2, 1) .5s backwards,
+        markGlow 1.2s ease-in-out 3.6s 2;
+}
+
+/* O texto: sai de trás do T e brilha */
+.intro-name {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-left: 22px;
+    font-size: clamp(1.5rem, 6vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: .12em;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, .4));
+    animation:
+        nameOut 1.3s cubic-bezier(.2, .8, .2, 1) 2s backwards,
+        textGlow 1.2s ease-in-out 3.6s 2;
+}
+.intro-clip { min-width: 0; overflow: hidden; }
+.intro-clip span {
+    display: block;
+    white-space: nowrap;
+    animation: nameSlide 1.3s cubic-bezier(.2, .8, .2, 1) 2s backwards;
+}
+
+@keyframes introOut { to { opacity: 0; visibility: hidden; } }
+@keyframes markIn {
+    from { opacity: 0; transform: scale(.82); filter: blur(10px); }
+    to   { opacity: 1; transform: scale(1);   filter: blur(0); }
+}
+@keyframes nameOut {
+    from { grid-template-columns: 0fr; margin-left: 0; opacity: 0; }
+    30%  { opacity: 1; }
+    to   { grid-template-columns: 1fr; margin-left: 22px; opacity: 1; }
+}
+@keyframes nameSlide { from { transform: translateX(-70%); } to { transform: translateX(0); } }
+@keyframes brandPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes markGlow {
+    0%, 100% { box-shadow: 0 0 24px rgba(255, 255, 255, .18); }
+    50%      { box-shadow: 0 0 46px rgba(255, 255, 255, .7), inset 0 0 18px rgba(255, 255, 255, .3); }
+}
+@keyframes textGlow {
+    0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, .4)); }
+    50%      { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 22px rgba(255, 255, 255, .9)); }
+}
+
+/* A página entra, elemento por elemento, logo depois que o preto some */
+@keyframes riseIn      { from { opacity: 0; transform: translateY(18px); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-22px); } }
+
+body:has(.intro)      { --enter: 7.2s; }   /* quando a sequência começa */
+body:has(.intro.skip) { --enter: .15s; }   /* se pular a intro */
+
+body:has(.intro) :is(.sidebar, .topbar, .page-heading, .stat-card, .panel, .credits) {
+    animation: riseIn .9s cubic-bezier(.2, .8, .2, 1) calc(var(--enter) + var(--stagger, 0s)) backwards;
+}
+body:has(.intro) .sidebar { animation-name: slideInLeft; }
+
+/* ordem de entrada (atraso de cada um depois do início) */
+.topbar                              { --stagger: .1s; }
+.page-heading                        { --stagger: .25s; }
+.stat-card:nth-child(1)              { --stagger: .4s; }
+.stat-card:nth-child(2)              { --stagger: .52s; }
+.stat-card:nth-child(3)              { --stagger: .64s; }
+#task-list                           { --stagger: .8s; }
+.bottom-grid .panel:nth-child(1)     { --stagger: .95s; }
+.bottom-grid .panel:nth-child(2)     { --stagger: 1.25s; }
+.credits                             { --stagger: 1.45s; }
+
+@media (max-width: 620px) {
+    body:has(.intro) .sidebar { animation-name: riseIn; }   /* no celular a barra sobe de baixo */
+}

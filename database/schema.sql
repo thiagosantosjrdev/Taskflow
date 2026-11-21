@@ -8,7 +8,7 @@ USE task_manager;
 
 CREATE TABLE IF NOT EXISTS tasks (
   id        INT          NOT NULL AUTO_INCREMENT,
-  titulo    VARCHAR(20)  NOT NULL,
+  titulo    VARCHAR(100)  NOT NULL,
   descricao VARCHAR(255) NOT NULL DEFAULT 'Sem descrição',
   criado_em DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status    VARCHAR(20)  NOT NULL DEFAULT 'pendente',
